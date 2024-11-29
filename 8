@@ -1,0 +1,73 @@
+#include <stdio.h>
+
+struct Process {
+    int pid;          // Process ID
+    int burstTime;    // Burst Time
+    int remainingTime; // Remaining Time
+    int arrivalTime;  // Arrival Time
+    int waitingTime;  // Waiting Time
+    int turnaroundTime; // Turnaround Time
+};
+
+int main() {
+    int n, timeQuantum;
+    printf("Enter the number of processes: ");
+    scanf("%d", &n);
+
+    struct Process processes[n];
+
+    // Input process details
+    for (int i = 0; i < n; i++) {
+        processes[i].pid = i + 1;
+        printf("Enter burst time and arrival time for process %d: ", i + 1);
+        scanf("%d %d", &processes[i].burstTime, &processes[i].arrivalTime);
+        processes[i].remainingTime = processes[i].burstTime;
+        processes[i].waitingTime = 0;
+        processes[i].turnaroundTime = 0;
+    }
+
+    printf("Enter the time quantum: ");
+    scanf("%d", &timeQuantum);
+
+    int currentTime = 0, completedProcesses = 0;
+    float totalWaitingTime = 0, totalTurnaroundTime = 0;
+
+    while (completedProcesses < n) {
+        int executed = 0; // Flag to check if any process executed in this cycle
+        for (int i = 0; i < n; i++) {
+            if (processes[i].remainingTime > 0 && processes[i].arrivalTime <= currentTime) {
+                executed = 1;
+                if (processes[i].remainingTime <= timeQuantum) {
+                    currentTime += processes[i].remainingTime;
+                    processes[i].remainingTime = 0;
+                    completedProcesses++;
+
+                    // Calculate waiting and turnaround times
+                    processes[i].turnaroundTime = currentTime - processes[i].arrivalTime;
+                    processes[i].waitingTime = processes[i].turnaroundTime - processes[i].burstTime;
+
+                    totalWaitingTime += processes[i].waitingTime;
+                    totalTurnaroundTime += processes[i].turnaroundTime;
+                } else {
+                    processes[i].remainingTime -= timeQuantum;
+                    currentTime += timeQuantum;
+                }
+            }
+        }
+        if (!executed) {
+            currentTime++; // Increment time if no process executed
+        }
+    }
+
+    // Output the results
+    printf("\nProcess\tBurst Time\tArrival Time\tWaiting Time\tTurnaround Time\n");
+    for (int i = 0; i < n; i++) {
+        printf("%d\t%d\t\t%d\t\t%d\t\t%d\n", processes[i].pid, processes[i].burstTime,
+               processes[i].arrivalTime, processes[i].waitingTime, processes[i].turnaroundTime);
+    }
+
+    printf("\nAverage Waiting Time: %.2f", totalWaitingTime / n);
+    printf("\nAverage Turnaround Time: %.2f\n", totalTurnaroundTime / n);
+
+    return 0;
+}
