@@ -1,0 +1,76 @@
+#include <stdio.h>
+
+struct Process {
+    int pid;       // Process ID
+    int burstTime; // Burst time
+    int priority;  // Priority
+    int arrivalTime; // Arrival time
+    int waitingTime; // Waiting time
+    int turnaroundTime; // Turnaround time
+    int remainingTime; // Remaining time
+};
+
+// Function to find the process with the highest priority
+int findHighestPriorityProcess(struct Process processes[], int n, int currentTime) {
+    int highestPriority = -1;
+    int highestPriorityIndex = -1;
+    for (int i = 0; i < n; i++) {
+        if (processes[i].arrivalTime <= currentTime && processes[i].remainingTime > 0) {
+            if (highestPriority == -1 || processes[i].priority < highestPriority) {
+                highestPriority = processes[i].priority;
+                highestPriorityIndex = i;
+            }
+        }
+    }
+    return highestPriorityIndex;
+}
+
+int main() {
+    int n;
+    printf("Enter the number of processes: ");
+    scanf("%d", &n);
+
+    struct Process processes[n];
+
+    for (int i = 0; i < n; i++) {
+        processes[i].pid = i + 1;
+        printf("Enter burst time, priority, and arrival time for process %d: ", i + 1);
+        scanf("%d %d %d", &processes[i].burstTime, &processes[i].priority, &processes[i].arrivalTime);
+        processes[i].remainingTime = processes[i].burstTime;
+    }
+
+    int completedProcesses = 0, currentTime = 0;
+    float totalWaitingTime = 0, totalTurnaroundTime = 0;
+
+    while (completedProcesses < n) {
+        int currentProcess = findHighestPriorityProcess(processes, n, currentTime);
+
+        if (currentProcess == -1) {
+            currentTime++;
+            continue;
+        }
+
+        processes[currentProcess].remainingTime--;
+        currentTime++;
+
+        if (processes[currentProcess].remainingTime == 0) {
+            completedProcesses++;
+            processes[currentProcess].turnaroundTime = currentTime - processes[currentProcess].arrivalTime;
+            processes[currentProcess].waitingTime = processes[currentProcess].turnaroundTime - processes[currentProcess].burstTime;
+
+            totalWaitingTime += processes[currentProcess].waitingTime;
+            totalTurnaroundTime += processes[currentProcess].turnaroundTime;
+        }
+    }
+
+    printf("\nProcess\tBurst Time\tArrival Time\tPriority\tWaiting Time\tTurnaround Time\n");
+    for (int i = 0; i < n; i++) {
+        printf("%d\t%d\t\t%d\t\t%d\t\t%d\t\t%d\n", processes[i].pid, processes[i].burstTime,
+               processes[i].arrivalTime, processes[i].priority, processes[i].waitingTime, processes[i].turnaroundTime);
+    }
+
+    printf("\nAverage Waiting Time: %.2f", totalWaitingTime / n);
+    printf("\nAverage Turnaround Time: %.2f\n", totalTurnaroundTime / n);
+
+    return 0;
+}
