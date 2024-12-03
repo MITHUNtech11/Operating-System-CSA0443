@@ -1,0 +1,39 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <pthread.h>
+#include <unistd.h>
+
+// Function to be executed by threads
+void* threadFunction(void* arg) {
+    int threadNum = *((int*)arg);
+    printf("Thread %d is starting.\n", threadNum);
+    sleep(1); // Simulating some work
+    printf("Thread %d has finished.\n", threadNum);
+    return NULL;
+}
+
+int main() {
+    pthread_t threads[3]; // Array to hold thread identifiers
+    int threadArgs[3];    // Array to hold arguments for threads
+
+    // Creating threads
+    for (int i = 0; i < 3; i++) {
+        threadArgs[i] = i + 1;
+        if (pthread_create(&threads[i], NULL, threadFunction, &threadArgs[i]) != 0) {
+            perror("Error creating thread");
+            return EXIT_FAILURE;
+        }
+        printf("Thread %d created.\n", i + 1);
+    }
+
+    // Joining threads
+    for (int i = 0; i < 3; i++) {
+        if (pthread_join(threads[i], NULL) != 0) {
+            perror("Error joining thread");
+            return EXIT_FAILURE;
+        }
+    }
+
+    printf("All threads have finished.\n");
+    return 0;
+}
